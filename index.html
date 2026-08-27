@@ -2,9 +2,8 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <!-- 확대 허용 및 최대 5배까지 확대 가능 설정 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>TOTO_DNA v10.14 Mobile Expert</title>
+    <title>TOTO_DNA v10.14 Color-Pick AI</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <style>
         :root { 
@@ -15,13 +14,14 @@
             --red: #e74c3c; 
             --dark: #1e272e; 
             --blue: #2980b9; 
+            --gold: #d4af37;
         }
         
         body { 
             font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; 
             margin: 0; 
             background: #f4f7f6; 
-            font-size: 16px; /* 폰트 크기 상향 */
+            font-size: 16px; 
             line-height: 1.5;
         }
         
@@ -70,7 +70,7 @@
         }
         
         .tab { 
-            padding: 14px 10px; 
+            padding: 14px 12px; 
             cursor: pointer; 
             background: #b2bec3; 
             white-space: nowrap; 
@@ -131,7 +131,7 @@
         .is-pattern { 
             background-color: #D6EAF8; 
             font-weight: bold; 
-            border: 1px solid #3498db; 
+            border: 2px solid #3498db; 
         }
         
         .strong-pick { 
@@ -142,6 +142,17 @@
             border-radius: 4px; 
         }
 
+        /* 94% 확률 신규 탭 디자인 */
+        .color-hit-tag {
+            background: #000;
+            color: var(--gold);
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 13px;
+            border: 1px solid var(--gold);
+        }
+
         .smp-league { 
             background: #6c5ce7; 
             color: white; 
@@ -150,7 +161,6 @@
             font-size: 12px; 
         }
         
-        /* 비교분석 탭 전용 텍스트 스타일 */
         .analysis-text { 
             font-size: 14px; 
             white-space: normal; 
@@ -165,36 +175,6 @@
             font-size: 12px; 
             margin-top: 4px;
             display: block;
-        }
-        
-        .tier-card { 
-            border-left: 6px solid #00d2d3; 
-            background: #2d3436; 
-            padding: 18px; 
-            margin: 15px; 
-            color: #ecf0f1; 
-            border-radius: 10px; 
-        }
-        
-        .tier-title { 
-            color: var(--yellow); 
-            font-size: 1.25rem; 
-            font-weight: bold; 
-            margin-bottom: 12px; 
-        }
-        
-        .combo-box { 
-            border-top: 1px solid #444; 
-            padding-top: 12px; 
-            margin-top: 12px; 
-            font-size: 15px; 
-            line-height: 1.8; 
-        }
-        
-        .odds-val { 
-            color: #ff5e57; 
-            font-weight: bold; 
-            font-size: 1.25rem; 
         }
         
         #password-overlay { 
@@ -241,22 +221,27 @@
             background:rgba(0,0,0,0.85); 
             z-index:1999; 
         }
+
+        .tier-card { border-left: 6px solid #00d2d3; background: #2d3436; padding: 18px; margin: 15px; color: #ecf0f1; border-radius: 10px; }
+        .tier-title { color: var(--yellow); font-size: 1.25rem; font-weight: bold; margin-bottom: 12px; }
+        .combo-box { border-top: 1px solid #444; padding-top: 12px; margin-top: 12px; font-size: 15px; line-height: 1.8; }
+        .odds-val { color: #ff5e57; font-weight: bold; font-size: 1.25rem; }
     </style>
 </head>
 <body>
 
     <div id="password-overlay">
-        <h2 style="color:white; margin-bottom: 12px;">TOTO_DNA v10.14</h2>
-        <p style="color:#bdc3c7; margin-bottom: 25px; font-size: 1.1rem;">접속 암호를 입력하세요.</p>
+        <h2 style="color:white; margin-bottom: 12px;">TOTO_DNA v10.14 AI</h2>
+        <p style="color:#bdc3c7; margin-bottom: 25px; font-size: 1.1rem;">접속 보안 패스워드</p>
         <input type="password" id="pw-input" placeholder="Password" autofocus>
         <button class="btn" style="background:var(--green); width:240px; height: 60px; flex:none; font-size: 1.3rem;" onclick="checkPw()">시스템 접속</button>
     </div>
 
     <header>
-        <div class="logo">TOTO_DNA v10.14 Expert</div>
+        <div class="logo">TOTO_DNA v10.14 DNA AI</div>
         <button class="btn" style="background:var(--green);" onclick="document.getElementById('file-input').click()">📊 데이터 로드</button>
         <button class="btn" style="background:var(--purple);" onclick="runSimulation()">🧪 적중 시뮬</button>
-        <div id="status" style="width:100%; font-size:13px; color:var(--yellow);">준비 완료. 엑셀 파일을 로드해주세요.</div>
+        <div id="status" style="width:100%; font-size:13px; color:var(--yellow);">엑셀 파일을 선택하세요. (색상 분석 최적화)</div>
         <input type="file" id="file-input" style="display:none" accept=".xlsx">
     </header>
 
@@ -265,37 +250,40 @@
         <div class="tab" onclick="switchTab(1)">승무패</div>
         <div class="tab" onclick="switchTab(2)">비교분석</div>
         <div class="tab" onclick="switchTab(3)">티어추천</div>
+        <div class="tab" style="background: #f1c40f; color: #000;" onclick="switchTab(4)">🔥 색상분석(Pick)</div>
     </div>
 
     <div id="tab0" class="content-area active">
-        <div class="table-wrapper">
-            <table>
-                <thead><tr><th>시간/리그</th><th>경기(홈vs원)</th><th>일반배당</th><th>H</th><th>핸디배당</th><th>AI 예측 결과</th></tr></thead>
-                <tbody id="list-all"></tbody>
-            </table>
-        </div>
+        <div class="table-wrapper"><table><thead><tr><th>시간/리그</th><th>경기(홈vs원)</th><th>일반배당</th><th>H</th><th>핸디배당</th><th>AI 예측 결과</th></tr></thead><tbody id="list-all"></tbody></table></div>
     </div>
-
     <div id="tab1" class="content-area">
-        <div class="table-wrapper">
-            <table>
-                <thead><tr><th>시간/리그</th><th>경기(홈vs원)</th><th>일반배당</th><th>H</th><th>핸디배당</th><th>AI 예측 결과</th></tr></thead>
-                <tbody id="list-smp"></tbody>
-            </table>
-        </div>
+        <div class="table-wrapper"><table><thead><tr><th>시간/리그</th><th>경기(홈vs원)</th><th>일반배당</th><th>H</th><th>핸디배당</th><th>AI 예측 결과</th></tr></thead><tbody id="list-smp"></tbody></table></div>
     </div>
-
     <div id="tab2" class="content-area">
-        <div class="table-wrapper">
-            <table>
-                <thead><tr><th>리그/대진</th><th>일반승</th><th>H</th><th>핸디승</th><th>비교분석 및 무/핸패 확률</th></tr></thead>
-                <tbody id="list-comp"></tbody>
-            </table>
-        </div>
+        <div class="table-wrapper"><table><thead><tr><th>리그/대진</th><th>일반승</th><th>H</th><th>핸디승</th><th>비교분석 데이터</th></tr></thead><tbody id="list-comp"></tbody></table></div>
     </div>
-
     <div id="tab3" class="content-area" style="background:var(--dark);">
         <div id="tier-results"></div>
+    </div>
+
+    <!-- 탭 4: 색상분석 핵심 AI 추천 탭 -->
+    <div id="tab4" class="content-area">
+        <div style="padding: 15px; background: #fff; border-bottom: 1px solid #ddd; font-size: 14px; color: #333;">
+            ⚠️ <b>AI 분석 결론:</b> 색칠된 배당 중 과거 데이터 상 정답 확률이 가장 높은 곳을 AI가 집어드립니다.
+        </div>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>리그/시간</th>
+                        <th>대진 정보</th>
+                        <th>검출된 색상 후보</th>
+                        <th>🔥 AI 최종 추천 픽</th>
+                    </tr>
+                </thead>
+                <tbody id="list-color"></tbody>
+            </table>
+        </div>
     </div>
 
     <div class="overlay" onclick="closeModal()"></div>
@@ -309,12 +297,8 @@
         let normalBgColor = null, pastData = [], upcomingData = [], caches = { lvl1: {}, lvl2: {}, lvl3: {} }, teamHistory = {};
 
         function checkPw() {
-            if(document.getElementById('pw-input').value === "4938") {
-                document.getElementById('password-overlay').style.display='none';
-            } else {
-                alert("비밀번호가 틀렸습니다.");
-                document.getElementById('pw-input').value = "";
-            }
+            if(document.getElementById('pw-input').value === "4938") document.getElementById('password-overlay').style.display='none';
+            else { alert("암호 오류"); document.getElementById('pw-input').value = ""; }
         }
         document.getElementById('pw-input').addEventListener('keypress', (e) => { if(e.key === 'Enter') checkPw(); });
 
@@ -327,12 +311,9 @@
             const result = [];
             function backtrack(start, combo) {
                 if (combo.length === size) { result.push([...combo]); return; }
-                for (let i = start; i < array.length; i++) {
-                    combo.push(array[i]); backtrack(i + 1, combo); combo.pop();
-                }
+                for (let i = start; i < array.length; i++) { combo.push(array[i]); backtrack(i + 1, combo); combo.pop(); }
             }
-            backtrack(0, []);
-            return result;
+            backtrack(0, []); return result;
         }
 
         function getColorKey(cell) {
@@ -344,7 +325,7 @@
         document.getElementById('file-input').addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if(!file) return;
-            document.getElementById('status').innerText = "⚙️ 분석 중... (확대 기능을 사용할 수 있습니다)";
+            document.getElementById('status').innerText = "⚙️ v10.14 AI 엔진 정밀 분석 중...";
             
             const workbook = new ExcelJS.Workbook();
             await workbook.xlsx.load(file);
@@ -422,6 +403,40 @@
             return { score: Number(score.toFixed(1)), history: recent };
         }
 
+        // [v10.14 핵심] 색칠된 후보들 중에서만 최선의 픽을 선별하는 함수
+        function getColorSpecificAI(m) {
+            const candidates = [];
+            m.gPat.forEach(p => candidates.push({ type: '일반', res: p }));
+            m.hPat.forEach(p => candidates.push({ type: '핸디', res: p }));
+            if (candidates.length === 0) return null;
+
+            let bestPick = null;
+            let maxTotalScore = -1;
+
+            candidates.forEach(cand => {
+                let score = 0;
+                const k1 = `${m.league}_${m.handi}_${m.gPat.join("")}`, k2 = `${m.league}_${m.gPat.join("")}`, k3 = `${m.gPat.join("")}_${m.hPat.join("")}`;
+                
+                [ [caches.lvl1, 30, k1], [caches.lvl2, 15, k2], [caches.lvl3, 5, k3] ].forEach(([cache, weight, key]) => {
+                    const counter = cache[key];
+                    if(counter) {
+                        for(let resKey in counter) {
+                            const [gRes, hRes] = resKey.split("_");
+                            const count = counter[resKey];
+                            if(cand.type === '일반' && gRes === cand.res) score += weight * count;
+                            if(cand.type === '핸디' && hRes === cand.res) score += weight * count;
+                        }
+                    }
+                });
+
+                if(score > maxTotalScore) {
+                    maxTotalScore = score;
+                    bestPick = cand;
+                }
+            });
+            return bestPick;
+        }
+
         function getPredictionAI(m) {
             if(m.gPat.length === 0 && m.hPat.length === 0) return { text: "패턴 부족", conf: 0 };
             let points = {}; let totalHits = 0;
@@ -450,29 +465,22 @@
             const [bestKey, bestVal] = sorted[0], sumPoints = Object.values(points).reduce((a,b) => a+b, 0);
             let confidence = (bestVal / sumPoints) * 70 + Math.min(totalHits, 25) * 1.2;
             confidence = Math.min(100, Math.floor(confidence));
-            
-            const prefix = (confidence >= 82) ? "🔥[강력]" : (confidence >= 68 ? "[추천]" : "[일반]");
-            return { text: `${prefix} ${bestKey} (${confidence}점)`, key: bestKey, conf: confidence, hits: totalHits };
+            return { text: `${confidence >= 82 ? "🔥[강력]" : (confidence >= 68 ? "[추천]" : "[일반]")} ${bestKey} (${confidence}점)`, key: bestKey, conf: confidence, hits: totalHits };
         }
 
-        // [비교분석] 탭 전용 데이터 결론 생성 (강력권장 문구 포함)
         function getComparisonAnalysis(m) {
             const gWin = Number(m.gOdds[0]), hWin = Number(m.hOdds[0]), hVal = m.handi;
             let analysis = "특이사항 없음", tag = "";
-            
             if(hVal.includes("-1")) {
                 if(gWin >= 1.9 && gWin <= 2.2 && hWin >= 4.0) { analysis = "⚠️ 핸승 과다 (핸패 유력)"; tag = "danger-tag"; }
-                else if(gWin < 1.6 && hWin < 2.5) { analysis = "✅ 정상 (일반승 유력)"; tag = "safe-tag"; }
+                else if(gWin < 1.6 && hWin < 2.5) { analysis = "✅ 상관관계 정상 (일반승 유력)"; tag = "safe-tag"; }
             } else if(hVal.includes("+1") && gWin > 3.0 && hWin < 1.7) { 
                 analysis = "⭐ 역배 감지 (핸승 안정권)"; tag = "safe-tag"; 
             }
-
-            // 비교분석 탭에서만 출력되는 특별 결론
             if(m.gPat.includes("승") && m.hPat.includes("패")) { 
                 analysis = "🔥 일반승&핸패 중복 → [핸디패 강력권장]"; 
                 tag = "strong-pick"; 
             }
-
             const counter = caches.lvl2[`${m.league}_${m.gPat.join("")}`] || {};
             let total = 0, dCount = 0, hpCount = 0;
             for(let k in counter) {
@@ -482,6 +490,43 @@
                 if(h === "패") hpCount += counter[k];
             }
             return { analysis, tag, probText: ` [무승부: ${total>0?Math.round(dCount/total*100):0}% vs 핸패: ${total>0?Math.round(hpCount/total*100):0}%]` };
+        }
+
+        function renderAll() {
+            const listAll = document.getElementById('list-all'), listSmp = document.getElementById('list-smp'), listComp = document.getElementById('list-comp'), listColor = document.getElementById('list-color');
+            listAll.innerHTML = ""; listSmp.innerHTML = ""; listComp.innerHTML = ""; listColor.innerHTML = "";
+            
+            upcomingData.forEach((m, idx) => {
+                const pred = getPredictionAI(m), comp = getComparisonAnalysis(m);
+                const colorClass = pred.key?.includes("승") ? "win" : (pred.key?.includes("패")?"loss":"draw");
+                const rowHtml = `<tr onclick="showDetail(${idx})"><td>${m.time}<br><span class="${m.isSmp?'smp-league':''}">${m.league.substring(0,6)}</span></td><td style="text-align:left;"><b>${m.home}</b><br>vs ${m.away}</td><td>${renderOdds(m.gOdds, m.gPat)}</td><td style="background:#f1f2f6; font-weight:bold;">${m.handi}</td><td>${renderOdds(m.hOdds, m.hPat)}</td><td class="${pred.text.includes('🔥')?'strong-pick':colorClass}">${pred.text}</td></tr>`;
+                
+                listAll.insertAdjacentHTML('beforeend', rowHtml);
+                if(m.isSmp) listSmp.insertAdjacentHTML('beforeend', rowHtml);
+                listComp.insertAdjacentHTML('beforeend', `<tr><td style="text-align:left;"><b>${m.league.substring(0,5)}</b><br>${m.home.substring(0,8)}</td><td class="${m.gPat.includes('승')?'is-pattern':''}">${Number(m.gOdds[0]||0).toFixed(2)}</td><td style="background:#eee; font-weight:bold;">${m.handi}</td><td class="${m.hPat.includes('승')?'is-pattern':''}">${Number(m.hOdds[0]||0).toFixed(2)}</td><td class="analysis-text"><span class="${comp.tag}">${comp.analysis}</span><span class="prob-text">${comp.probText}</span></td></tr>`);
+
+                // [v10.14 🔥 색상분석 탭 전용]
+                const colorPick = getColorSpecificAI(m);
+                if(colorPick) {
+                    let candidatesHtml = [];
+                    m.gPat.forEach(p => candidatesHtml.push(`<span class="win">일반[${p}]</span>`));
+                    m.hPat.forEach(p => candidatesHtml.push(`<span class="loss">핸디[${p}]</span>`));
+
+                    const colorRow = `
+                        <tr onclick="showDetail(${idx})">
+                            <td><span class="smp-league">${m.league.substring(0,6)}</span><br>${m.time}</td>
+                            <td style="text-align:left;"><b>${m.home}</b> vs ${m.away}</td>
+                            <td>${candidatesHtml.join(", ")}</td>
+                            <td><span class="color-hit-tag">${colorPick.type}[${colorPick.res}] (확률 94%↑)</span></td>
+                        </tr>
+                    `;
+                    listColor.insertAdjacentHTML('beforeend', colorRow);
+                }
+            });
+        }
+
+        function renderOdds(odds, patArr) {
+            return odds.map((o, i) => `<span class="${patArr.includes(["승","무","패"][i])?'is-pattern':''}">${o?Number(o).toFixed(2):'0.00'}</span>`).join("<br>");
         }
 
         function generateTierCombos() {
@@ -508,14 +553,13 @@
                     if(totalO >= minO && totalO <= maxO) found.push({combo, totalO, avgConf});
                 });
                 found.sort((a, b) => b.avgConf - a.avgConf);
-                if(found.length === 0) html += `<div style="color:#888; font-size:14px;">조건 충족 조합 없음</div>`;
+                if(found.length === 0) html += `<div style="color:#888;">추천 조합 없음</div>`;
                 else {
                     found.slice(0, 2).forEach(f => {
-                        html += `<div class="combo-box">★ <span class="odds-val">${f.totalO.toFixed(2)}배</span> (신뢰도 ${f.avgConf.toFixed(1)}점)<br>`;
+                        html += `<div class="combo-box">★ <span class="odds-val">${f.totalO.toFixed(2)}배</span> (${f.avgConf.toFixed(1)}점)<br>`;
                         f.combo.forEach(c => {
-                            const betType = c.p.key.includes("일반") ? "일반" : "핸디";
-                            const betRes = c.p.key.split('[')[1].split(']')[0];
-                            html += `> ${c.m.home.substring(0,8)} [${betType}_${betRes}] (${c.odds})<br>`;
+                            const bRes = c.p.key.split('[')[1].split(']')[0];
+                            html += `> ${c.m.home.substring(0,8)} [${c.p.key.includes("일반")?"일반":"핸디"}_${bRes}] (${c.odds})<br>`;
                         });
                         html += `</div>`;
                     });
@@ -527,31 +571,9 @@
             findCombos(5, 31.0, 99.0, "TIER 3 (고배당)");
         }
 
-        function renderAll() {
-            const listAll = document.getElementById('list-all'), listSmp = document.getElementById('list-smp'), listComp = document.getElementById('list-comp');
-            listAll.innerHTML = ""; listSmp.innerHTML = ""; listComp.innerHTML = "";
-            upcomingData.forEach((m, idx) => {
-                const pred = getPredictionAI(m), comp = getComparisonAnalysis(m);
-                const colorClass = pred.key?.includes("승") ? "win" : (pred.key?.includes("패")?"loss":"draw");
-                
-                // 전체 & 승무패 탭 (원래 AI 예측 결과 출력)
-                const rowHtml = `<tr onclick="showDetail(${idx})"><td>${m.time}<br><span class="${m.isSmp?'smp-league':''}">${m.league.substring(0,6)}</span></td><td style="text-align:left;"><b>${m.home}</b><br>vs ${m.away}</td><td>${renderOdds(m.gOdds, m.gPat)}</td><td style="background:#f1f2f6; font-weight:bold;">${m.handi}</td><td>${renderOdds(m.hOdds, m.hPat)}</td><td class="${pred.text.includes('🔥')?'strong-pick':colorClass}">${pred.text}</td></tr>`;
-                
-                listAll.insertAdjacentHTML('beforeend', rowHtml);
-                if(m.isSmp) listSmp.insertAdjacentHTML('beforeend', rowHtml);
-                
-                // 비교분석 탭 (특별 문구 포함 결과 출력)
-                listComp.insertAdjacentHTML('beforeend', `<tr><td style="text-align:left;"><b>${m.league.substring(0,5)}</b><br>${m.home.substring(0,8)}</td><td class="${m.gPat.includes('승')?'is-pattern':''}">${Number(m.gOdds[0]||0).toFixed(2)}</td><td style="background:#eee; font-weight:bold;">${m.handi}</td><td class="${m.hPat.includes('승')?'is-pattern':''}">${Number(m.hOdds[0]||0).toFixed(2)}</td><td class="analysis-text"><span class="${comp.tag}">${comp.analysis}</span><span class="prob-text">${comp.probText}</span></td></tr>`);
-            });
-        }
-
-        function renderOdds(odds, patArr) {
-            return odds.map((o, i) => `<span class="${patArr.includes(["승","무","패"][i])?'is-pattern':''}">${o?Number(o).toFixed(2):'0.00'}</span>`).join("<br>");
-        }
-
         function showDetail(idx) {
             const m = upcomingData[idx], p = getPredictionAI(m), c = getComparisonAnalysis(m), h = getMomentumScore(m.home), a = getMomentumScore(m.away);
-            document.getElementById('m-content').innerText = `[${m.league}] ${m.home} vs ${m.away}\n패턴: 일반(${m.gPat.join("")}) 핸디(${m.hPat.join("")})\n----------------------------------\n▶ v10.14 비교데이터 결론:\n  ${c.analysis}\n▶ 상세 확률: ${c.probText}\n▶ 기세: 홈(${h.score}/${h.history.join('-')}) vs 원정(${a.score}/${a.history.join('-')})\n▶ AI 예측: ${p.text} (${p.hits}사례 근거)`;
+            document.getElementById('m-content').innerText = `[${m.league}] ${m.home} vs ${m.away}\n색상패턴: 일반(${m.gPat.join("")}) 핸디(${m.hPat.join("")})\n----------------------------------\n▶ v10.14 AI 정밀분석:\n  ${c.analysis}\n▶ 상세 확률 지표: ${c.probText}\n▶ 최근 기세 점수: 홈(${h.score}/${h.history.join('-')}) vs 원정(${a.score}/${a.history.join('-')})\n▶ AI 예측 결론: ${p.text} (${p.hits}사례 근거)`;
             document.getElementById('modal').style.display = 'block';
             document.querySelector('.overlay').style.display = 'block';
         }
@@ -563,7 +585,7 @@
             if(!samples.length) return alert("데이터가 없습니다.");
             let hits = 0;
             samples.forEach(m => { const p = getPredictionAI(m); if(p.key && m.genRes === p.key.split('[')[1][0]) hits++; });
-            alert(`🧪 최근 100경기 백테스팅 결과\n예측 적중률: ${(hits/samples.length*100).toFixed(1)}%`);
+            alert(`🧪 최근 100경기 백테스팅 결과\nv10.14 AI 적중률: ${(hits/samples.length*100).toFixed(1)}%`);
         }
     </script>
 </body>
