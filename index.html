@@ -2,8 +2,9 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TOTO_DNA v10.14 High-Visibility</title>
+    <!-- 확대 가능하도록 viewport 설정 수정 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>TOTO_DNA v10.14 Zoom-Enabled</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <style>
         :root { 
@@ -16,14 +17,12 @@
             --blue: #2980b9; 
         }
         
-        /* 전체 기본 폰트 크기 상향 (14px -> 16px) */
         body { 
             font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; 
             margin: 0; 
             background: #f4f7f6; 
             font-size: 16px; 
             line-height: 1.5;
-            -webkit-text-size-adjust: none; 
         }
         
         header { 
@@ -40,7 +39,7 @@
         }
         
         .logo { 
-            font-size: 1.35rem; /* 조금 더 크게 */
+            font-size: 1.35rem; 
             font-weight: bold; 
             color: var(--yellow); 
             width: 100%; 
@@ -55,7 +54,7 @@
             border-radius: 6px; 
             color: white; 
             font-weight: bold; 
-            font-size: 14px; /* 버튼 폰트 상향 */
+            font-size: 14px; 
             flex: 1; 
             cursor: pointer; 
         }
@@ -65,6 +64,9 @@
             background: #dfe6e9; 
             overflow-x: auto; 
             border-bottom: 2px solid #bdc3c7; 
+            position: sticky;
+            top: 85px; /* 헤더 아래 고정 */
+            z-index: 999;
         }
         
         .tab { 
@@ -76,7 +78,7 @@
             border-right: 1px solid #ccc; 
             flex: 1; 
             text-align: center; 
-            font-size: 14px; /* 탭 폰트 상향 */
+            font-size: 14px; 
         }
         
         .tab.active { 
@@ -88,8 +90,9 @@
         .content-area { 
             display: none; 
             padding: 0; 
-            height: calc(100vh - 190px); 
-            overflow: auto; 
+            height: auto; 
+            min-height: calc(100vh - 190px);
+            overflow: visible; 
         }
         
         .content-area.active { 
@@ -112,7 +115,7 @@
             background: #34495e; 
             color: white; 
             padding: 12px 6px; 
-            font-size: 13px; /* 제목행 상향 */
+            font-size: 13px; 
             position: sticky; 
             top: 0; 
         }
@@ -121,10 +124,10 @@
             border: 1px solid #dfe6e9; 
             padding: 12px 6px; 
             text-align: center; 
-            font-size: 14px; /* 데이터 폰트 상향 */
+            font-size: 14px; 
         }
         
-        /* 상세 정보 가독성 */
+        /* 포인트 컬러들 */
         .win { color: #0984e3; font-weight: bold; }
         .draw { color: #00b894; font-weight: bold; }
         .loss { color: #d63031; font-weight: bold; }
@@ -132,7 +135,6 @@
             background-color: #D6EAF8; 
             font-weight: bold; 
             border: 1px solid #3498db; 
-            padding: 1px 3px;
         }
         .strong-pick { 
             background: #eb4d4b !important; 
@@ -215,8 +217,7 @@
             text-align: center; 
             outline: none; 
         }
-        
-        /* 상세 리포트 모달 */
+
         #modal { 
             display:none; 
             position:fixed; 
@@ -229,6 +230,7 @@
             border-radius:15px; 
             max-height: 85vh; 
             overflow-y: auto; 
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
         
         .overlay { 
@@ -244,16 +246,16 @@
 
     <div id="password-overlay">
         <h2 style="color:white; margin-bottom: 12px;">TOTO_DNA v10.14</h2>
-        <p style="color:#bdc3c7; margin-bottom: 25px; font-size: 1.1rem;">보안 인증이 필요합니다.</p>
-        <input type="password" id="pw-input" placeholder="Passcode" autofocus>
+        <p style="color:#bdc3c7; margin-bottom: 25px; font-size: 1.1rem;">접속 암호를 입력하세요.</p>
+        <input type="password" id="pw-input" placeholder="Password" autofocus>
         <button class="btn" style="background:var(--green); width:240px; height: 60px; flex:none; font-size: 1.3rem;" onclick="checkPw()">시스템 접속</button>
     </div>
 
     <header>
-        <div class="logo">TOTO_DNA v10.14 DNA Expert</div>
+        <div class="logo">TOTO_DNA v10.14 Expert</div>
         <button class="btn" style="background:var(--green);" onclick="document.getElementById('file-input').click()">📊 데이터 로드</button>
         <button class="btn" style="background:var(--purple);" onclick="runSimulation()">🧪 적중 시뮬</button>
-        <div id="status" style="width:100%; font-size:13px; color:var(--yellow);">준비 완료. 엑셀 파일을 업로드하세요.</div>
+        <div id="status" style="width:100%; font-size:13px; color:var(--yellow);">엑셀 파일을 선택해 분석을 시작하세요.</div>
         <input type="file" id="file-input" style="display:none" accept=".xlsx">
     </header>
 
@@ -285,7 +287,7 @@
     <div id="tab2" class="content-area">
         <div class="table-wrapper">
             <table>
-                <thead><tr><th>리그/대진</th><th>일반승</th><th>H</th><th>핸디승</th><th>v10.14 비교 분석 데이터</th></tr></thead>
+                <thead><tr><th>리그/대진</th><th>일반승</th><th>H</th><th>핸디승</th><th>v10.14 비교 분석</th></tr></thead>
                 <tbody id="list-comp"></tbody>
             </table>
         </div>
@@ -299,7 +301,7 @@
     <div id="modal">
         <h3 style="margin-top:0; color:var(--bg); border-bottom:2px solid var(--green); padding-bottom:12px; font-size: 1.4rem;">🔍 v10.14 정밀 리포트</h3>
         <div id="m-content" style="white-space: pre-wrap; font-size: 15px; line-height: 1.8; color:#333;"></div>
-        <button class="btn" style="background:var(--bg); width:100%; margin-top:25px; height: 55px; font-size: 1.2rem;" onclick="closeModal()">리포트 닫기</button>
+        <button class="btn" style="background:var(--bg); width:100%; margin-top:25px; height: 55px; font-size: 1.2rem;" onclick="closeModal()">닫기</button>
     </div>
 
     <script>
@@ -309,11 +311,10 @@
             if(document.getElementById('pw-input').value === "4938") {
                 document.getElementById('password-overlay').style.display='none';
             } else {
-                alert("비밀번호가 올바르지 않습니다.");
+                alert("암호가 틀렸습니다.");
                 document.getElementById('pw-input').value = "";
             }
         }
-
         document.getElementById('pw-input').addEventListener('keypress', (e) => { if(e.key === 'Enter') checkPw(); });
 
         function switchTab(idx) {
@@ -342,7 +343,7 @@
         document.getElementById('file-input').addEventListener('change', async function(e) {
             const file = e.target.files[0];
             if(!file) return;
-            document.getElementById('status').innerText = "⚙️ 고성능 엔진 분석 중... (잠시만 기다리세요)";
+            document.getElementById('status').innerText = "⚙️ 엔진 가동 중... (데이터 양에 따라 수초 소요)";
             
             const workbook = new ExcelJS.Workbook();
             await workbook.xlsx.load(file);
@@ -406,7 +407,7 @@
 
             renderAll();
             generateTierCombos();
-            document.getElementById('status').innerText = `✅ 분석 완료: 경기(${upcomingData.length})`;
+            document.getElementById('status').innerText = `✅ 분석 완료: ${upcomingData.length}경기 로드됨`;
         });
 
         function getMomentumScore(team) {
@@ -495,7 +496,7 @@
                     if(totalO >= minO && totalO <= maxO) found.push({combo, totalO, avgConf});
                 });
                 found.sort((a, b) => b.avgConf - a.avgConf);
-                if(found.length === 0) html += `<div style="color:#888; font-size:14px;">추천 조합이 없습니다.</div>`;
+                if(found.length === 0) html += `<div style="color:#888; font-size:14px;">조건에 맞는 조합이 발견되지 않았습니다.</div>`;
                 else {
                     found.slice(0, 2).forEach(f => {
                         html += `<div class="combo-box">★ <span class="odds-val">${f.totalO.toFixed(2)}배</span> (${f.avgConf.toFixed(1)}점)<br>`;
@@ -542,10 +543,10 @@
         
         function runSimulation() {
             const samples = pastData.slice(-100);
-            if(!samples.length) return alert("데이터가 충분하지 않습니다.");
+            if(!samples.length) return alert("데이터가 없습니다.");
             let hits = 0;
             samples.forEach(m => { const p = getPredictionAI(m); if(p.key && m.genRes === p.key.split('[')[1][0]) hits++; });
-            alert(`🧪 최근 100경기 백테스팅 결과\n예상 적중률: ${(hits/samples.length*100).toFixed(1)}%`);
+            alert(`🧪 최근 100경기 백테스팅\n예상 적중률: ${(hits/samples.length*100).toFixed(1)}%`);
         }
     </script>
 </body>
