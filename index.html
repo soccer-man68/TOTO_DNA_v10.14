@@ -2,8 +2,9 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
+    <!-- 확대 허용 및 최대 5배까지 확대 가능 설정 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-    <title>TOTO_DNA v10.14 Expert Full</title>
+    <title>TOTO_DNA v10.14 Mobile Expert</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
     <style>
         :root { 
@@ -20,7 +21,7 @@
             font-family: 'Malgun Gothic', 'Apple SD Gothic Neo', sans-serif; 
             margin: 0; 
             background: #f4f7f6; 
-            font-size: 16px; 
+            font-size: 16px; /* 폰트 크기 상향 */
             line-height: 1.5;
         }
         
@@ -132,15 +133,15 @@
             font-weight: bold; 
             border: 1px solid #3498db; 
         }
-        /* 강력 추천 스타일 (파이썬 v10.14 동기화) */
+        
         .strong-pick { 
             background: #eb4d4b !important; 
             color: white !important; 
             font-weight: bold; 
             padding: 4px 6px; 
             border-radius: 4px; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
+
         .smp-league { 
             background: #6c5ce7; 
             color: white; 
@@ -149,11 +150,12 @@
             font-size: 12px; 
         }
         
+        /* 비교분석 탭 전용 텍스트 스타일 */
         .analysis-text { 
             font-size: 14px; 
             white-space: normal; 
             text-align: left; 
-            max-width: 180px; 
+            max-width: 200px; 
             line-height: 1.4; 
         }
         
@@ -254,7 +256,7 @@
         <div class="logo">TOTO_DNA v10.14 Expert</div>
         <button class="btn" style="background:var(--green);" onclick="document.getElementById('file-input').click()">📊 데이터 로드</button>
         <button class="btn" style="background:var(--purple);" onclick="runSimulation()">🧪 적중 시뮬</button>
-        <div id="status" style="width:100%; font-size:13px; color:var(--yellow);">엑셀 파일을 로드하여 분석을 시작하세요.</div>
+        <div id="status" style="width:100%; font-size:13px; color:var(--yellow);">준비 완료. 엑셀 파일을 로드해주세요.</div>
         <input type="file" id="file-input" style="display:none" accept=".xlsx">
     </header>
 
@@ -286,7 +288,7 @@
     <div id="tab2" class="content-area">
         <div class="table-wrapper">
             <table>
-                <thead><tr><th>리그/대진</th><th>일반승</th><th>H</th><th>핸디승</th><th>v10.14 패턴 상관관계 분석</th></tr></thead>
+                <thead><tr><th>리그/대진</th><th>일반승</th><th>H</th><th>핸디승</th><th>비교분석 및 무/핸패 확률</th></tr></thead>
                 <tbody id="list-comp"></tbody>
             </table>
         </div>
@@ -310,7 +312,7 @@
             if(document.getElementById('pw-input').value === "4938") {
                 document.getElementById('password-overlay').style.display='none';
             } else {
-                alert("암호가 틀렸습니다.");
+                alert("비밀번호가 틀렸습니다.");
                 document.getElementById('pw-input').value = "";
             }
         }
@@ -406,7 +408,7 @@
 
             renderAll();
             generateTierCombos();
-            document.getElementById('status').innerText = `✅ 완료: ${upcomingData.length}경기 분석됨`;
+            document.getElementById('status').innerText = `✅ 분석 완료: ${upcomingData.length}경기 로드됨`;
         });
 
         function getMomentumScore(team) {
@@ -444,45 +446,30 @@
             if(hScore - aScore >= 5.0 && points["일반[승]"]) points["일반[승]"] *= 1.3;
             if(aScore - hScore >= 5.0 && points["일반[패]"]) points["일반[패]"] *= 1.3;
 
-            // v10.14 핸패 중복 로직 적용
-            if(m.gPat.includes("승") && m.hPat.includes("패") && points["핸디[패]"]) {
-                points["핸디[패]"] *= 1.5;
-            }
-
             const sorted = Object.entries(points).sort((a,b) => b[1] - a[1]);
             const [bestKey, bestVal] = sorted[0], sumPoints = Object.values(points).reduce((a,b) => a+b, 0);
             let confidence = (bestVal / sumPoints) * 70 + Math.min(totalHits, 25) * 1.2;
             confidence = Math.min(100, Math.floor(confidence));
             
-            // 일반승&핸패 중복 시 강제 등급 상향
-            let prefix = (confidence >= 82) ? "🔥[강력]" : (confidence >= 68 ? "[추천]" : "[일반]");
-            if(m.gPat.includes("승") && m.hPat.includes("패") && bestKey === "핸디[패]") prefix = "💎[강력권장]";
-
+            const prefix = (confidence >= 82) ? "🔥[강력]" : (confidence >= 68 ? "[추천]" : "[일반]");
             return { text: `${prefix} ${bestKey} (${confidence}점)`, key: bestKey, conf: confidence, hits: totalHits };
         }
 
-        // v10.14 비교 분석 결론 출력 로직 (핵심 수정!)
+        // [비교분석] 탭 전용 데이터 결론 생성 (강력권장 문구 포함)
         function getComparisonAnalysis(m) {
             const gWin = Number(m.gOdds[0]), hWin = Number(m.hOdds[0]), hVal = m.handi;
             let analysis = "특이사항 없음", tag = "";
             
             if(hVal.includes("-1")) {
-                if(gWin >= 1.9 && gWin <= 2.2 && hWin >= 4.0) { 
-                    analysis = "⚠️ 일반승 대비 핸디승 배당 과다 (핸디패 확률 높음)"; 
-                    tag = "danger-tag"; 
-                }
-                else if(gWin < 1.6 && hWin < 2.5) { 
-                    analysis = "✅ 배당 상관관계 정상 (일반승 유력)"; 
-                    tag = "safe-tag"; 
-                }
+                if(gWin >= 1.9 && gWin <= 2.2 && hWin >= 4.0) { analysis = "⚠️ 핸승 과다 (핸패 유력)"; tag = "danger-tag"; }
+                else if(gWin < 1.6 && hWin < 2.5) { analysis = "✅ 정상 (일반승 유력)"; tag = "safe-tag"; }
             } else if(hVal.includes("+1") && gWin > 3.0 && hWin < 1.7) { 
-                analysis = "⭐ 역배 가능성 감지 (핸디승 안정권)"; 
-                tag = "safe-tag"; 
+                analysis = "⭐ 역배 감지 (핸승 안정권)"; tag = "safe-tag"; 
             }
 
-            // 파이썬 v10.14의 '핸디패 권장' 로직 추가
+            // 비교분석 탭에서만 출력되는 특별 결론
             if(m.gPat.includes("승") && m.hPat.includes("패")) { 
-                analysis = "🔥 일반승 & 핸디패 패턴 중복포착 → [핸디패 강력권장]"; 
+                analysis = "🔥 일반승&핸패 중복 → [핸디패 강력권장]"; 
                 tag = "strong-pick"; 
             }
 
@@ -494,7 +481,7 @@
                 if(g === "무") dCount += counter[k];
                 if(h === "패") hpCount += counter[k];
             }
-            return { analysis, tag, probText: ` [무승부 확률: ${total>0?Math.round(dCount/total*100):0}% vs 핸디패 확률: ${total>0?Math.round(hpCount/total*100):0}%]` };
+            return { analysis, tag, probText: ` [무승부: ${total>0?Math.round(dCount/total*100):0}% vs 핸패: ${total>0?Math.round(hpCount/total*100):0}%]` };
         }
 
         function generateTierCombos() {
@@ -546,9 +533,14 @@
             upcomingData.forEach((m, idx) => {
                 const pred = getPredictionAI(m), comp = getComparisonAnalysis(m);
                 const colorClass = pred.key?.includes("승") ? "win" : (pred.key?.includes("패")?"loss":"draw");
-                const rowHtml = `<tr onclick="showDetail(${idx})"><td>${m.time}<br><span class="${m.isSmp?'smp-league':''}">${m.league.substring(0,6)}</span></td><td style="text-align:left;"><b>${m.home}</b><br>vs ${m.away}</td><td>${renderOdds(m.gOdds, m.gPat)}</td><td style="background:#f1f2f6; font-weight:bold;">${m.handi}</td><td>${renderOdds(m.hOdds, m.hPat)}</td><td class="${(pred.text.includes('🔥') || pred.text.includes('💎'))?'strong-pick':colorClass}">${pred.text}</td></tr>`;
+                
+                // 전체 & 승무패 탭 (원래 AI 예측 결과 출력)
+                const rowHtml = `<tr onclick="showDetail(${idx})"><td>${m.time}<br><span class="${m.isSmp?'smp-league':''}">${m.league.substring(0,6)}</span></td><td style="text-align:left;"><b>${m.home}</b><br>vs ${m.away}</td><td>${renderOdds(m.gOdds, m.gPat)}</td><td style="background:#f1f2f6; font-weight:bold;">${m.handi}</td><td>${renderOdds(m.hOdds, m.hPat)}</td><td class="${pred.text.includes('🔥')?'strong-pick':colorClass}">${pred.text}</td></tr>`;
+                
                 listAll.insertAdjacentHTML('beforeend', rowHtml);
                 if(m.isSmp) listSmp.insertAdjacentHTML('beforeend', rowHtml);
+                
+                // 비교분석 탭 (특별 문구 포함 결과 출력)
                 listComp.insertAdjacentHTML('beforeend', `<tr><td style="text-align:left;"><b>${m.league.substring(0,5)}</b><br>${m.home.substring(0,8)}</td><td class="${m.gPat.includes('승')?'is-pattern':''}">${Number(m.gOdds[0]||0).toFixed(2)}</td><td style="background:#eee; font-weight:bold;">${m.handi}</td><td class="${m.hPat.includes('승')?'is-pattern':''}">${Number(m.hOdds[0]||0).toFixed(2)}</td><td class="analysis-text"><span class="${comp.tag}">${comp.analysis}</span><span class="prob-text">${comp.probText}</span></td></tr>`);
             });
         }
@@ -559,7 +551,7 @@
 
         function showDetail(idx) {
             const m = upcomingData[idx], p = getPredictionAI(m), c = getComparisonAnalysis(m), h = getMomentumScore(m.home), a = getMomentumScore(m.away);
-            document.getElementById('m-content').innerText = `[${m.league}] ${m.home} vs ${m.away}\n패턴: 일반(${m.gPat.join("")}) 핸디(${m.hPat.join("")})\n----------------------------------\n▶ v10.14 비교분석 결과:\n  ${c.analysis}\n▶ 확률 데이터: ${c.probText}\n▶ 최근 기세: 홈(${h.score}/${h.history.join('-')}) vs 원정(${a.score}/${a.history.join('-')})\n▶ AI 최종 결론: ${p.text} (${p.hits}사례 근거)`;
+            document.getElementById('m-content').innerText = `[${m.league}] ${m.home} vs ${m.away}\n패턴: 일반(${m.gPat.join("")}) 핸디(${m.hPat.join("")})\n----------------------------------\n▶ v10.14 비교데이터 결론:\n  ${c.analysis}\n▶ 상세 확률: ${c.probText}\n▶ 기세: 홈(${h.score}/${h.history.join('-')}) vs 원정(${a.score}/${a.history.join('-')})\n▶ AI 예측: ${p.text} (${p.hits}사례 근거)`;
             document.getElementById('modal').style.display = 'block';
             document.querySelector('.overlay').style.display = 'block';
         }
@@ -571,7 +563,7 @@
             if(!samples.length) return alert("데이터가 없습니다.");
             let hits = 0;
             samples.forEach(m => { const p = getPredictionAI(m); if(p.key && m.genRes === p.key.split('[')[1][0]) hits++; });
-            alert(`🧪 최근 100경기 백테스팅 결과\nv10.14 엔진 적중률: ${(hits/samples.length*100).toFixed(1)}%`);
+            alert(`🧪 최근 100경기 백테스팅 결과\n예측 적중률: ${(hits/samples.length*100).toFixed(1)}%`);
         }
     </script>
 </body>
